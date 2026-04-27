@@ -1,0 +1,45 @@
+ハンズオンの中で、実行していただく Linux コマンドやプログラムを、コピー＆ペーストできるようにしています。
+
+# 5-2. IAM ロールの作成とEC2 インスタンスへの割り当て
+## EC2 インスタンスに Session Manager で接続したあとのコマンド
+sudo su ec2-user
+cd -
+aws --version
+
+aws s3 ls
+### => クレデンシャルがないと表示される
+
+aws s3 ls
+### => 適切な権限を与えることで、S3 バケットの一覧が表示される
+
+### （注）以下、コマンド内のバケット名 learning-aws-iam を皆さまのバケット名に置き換えてください。
+aws s3 ls s3://learning-aws-iam
+
+aws s3 cp s3://learning-aws-iam/learning-aws-iam.txt .
+cat learning-aws-iam.txt
+
+aws s3 cp learning-aws-iam.txt s3://learning-aws-iam/
+### => 最初は権限が足りず、エラーとなる
+
+aws s3 cp learning-aws-iam.txt s3://learning-aws-iam/
+### => 適切な権限を与えた後だと、実行できる
+
+# 5-3. IAM ロールの作成とLambda 関数への割り当て
+
+### （注）プログラム内のバケット名 learning-aws-iam を皆さまのバケット名に置き換えてください。
+import json
+import boto3
+
+client = boto3.client('s3')
+
+def lambda_handler(event, context):
+    response = client.get_object(
+        Bucket='learning-aws-iam',
+        Key='learning-aws-iam.txt',
+    )
+
+    print(response)
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Hello from Lambda!')
+    }
